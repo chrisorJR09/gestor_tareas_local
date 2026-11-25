@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../data/app_database.dart';
 
 class TareasPage extends StatefulWidget {
-  const TareasPage({super.key});
+  // Si no se pasa una base, la página crea y administra la suya
+  final AppDatabase? database;
+  const TareasPage({super.key, this.database});
 
   @override
   State<TareasPage> createState() => _TareasPageState();
@@ -12,11 +14,13 @@ class _TareasPageState extends State<TareasPage> {
   final TextEditingController _tituloController = TextEditingController();
   late final AppDatabase _db;
   late final Stream<List<TareaRow>> _tareas;
+  late final bool _creeLaBase;
 
   @override
   void initState() {
     super.initState();
-    _db = AppDatabase();
+    _creeLaBase = widget.database == null;
+    _db = widget.database ?? AppDatabase();
     // El stream se crea una sola vez: no se consulta la BD dentro de build()
     _tareas = _db.observarTareas();
   }
@@ -24,7 +28,8 @@ class _TareasPageState extends State<TareasPage> {
   @override
   void dispose() {
     _tituloController.dispose();
-    _db.close();
+    // Solo cerramos la base si la creó esta página
+    if (_creeLaBase) _db.close();
     super.dispose();
   }
 
