@@ -28,15 +28,18 @@ class _TareasPageState extends State<TareasPage> {
     super.dispose();
   }
 
-  Future<void> _ejecutar(Future<Object?> Function() accion) async {
+  /// Ejecuta una operación de base de datos y devuelve true si salió bien.
+  Future<bool> _ejecutar(Future<Object?> Function() accion) async {
     try {
       await accion();
+      return true;
     } on ArgumentError {
       _mostrarMensaje('El título no puede estar vacío.');
     } catch (e) {
       _mostrarMensaje('No se pudo completar la operación. Intenta de nuevo.');
       debugPrint('Error de almacenamiento: $e');
     }
+    return false;
   }
 
   void _mostrarMensaje(String texto) {
@@ -52,8 +55,9 @@ class _TareasPageState extends State<TareasPage> {
       _mostrarMensaje('El título no puede estar vacío.');
       return;
     }
-    await _ejecutar(() => _db.agregar(titulo));
-    _tituloController.clear();
+    final guardado = await _ejecutar(() => _db.agregar(titulo));
+    // Si falló el guardado, se conserva el texto para que el usuario reintente
+    if (guardado) _tituloController.clear();
   }
 
   Future<void> _alternarCompletada(TareaRow tarea, bool completada) =>
